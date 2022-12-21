@@ -94,7 +94,8 @@ class KiteApp:
 
     def quote(self, instruments):
         try:
-            response = self.session.get(f"{self.root_url}/quote", params={"i": instruments}, headers=self.headers).json()
+            response = self.session.get(f"{self.root_url}/quote", params={"i": instruments},
+                                        headers=self.headers).json()
             # return data
             if response["status"] == "success":
                 return response["data"]
@@ -155,25 +156,49 @@ class KiteApp:
                 return order_id
             else:
                 print("ERROR from server   ===> ", response["message"])
+                return None
         except Exception as e:
             print("ERROR occurred => ", e)
             return e
 
     def modify_order(self, variety, order_id, parent_order_id=None, quantity=None, price=None, order_type=None,
                      trigger_price=None, validity=None, disclosed_quantity=None):
-        params = locals()
-        del params["self"]
-        for k in list(params.keys()):
-            if params[k] is None:
-                del params[k]
+        try:
+            params = locals()
+            del params["self"]
+            for k in list(params.keys()):
+                if params[k] is None:
+                    del params[k]
 
-        order_id = self.session.put(f"{self.root_url}/orders/{variety}/{order_id}",
-                                    data=params, headers=self.headers).json()["data"][
-            "order_id"]
-        return order_id
+            # order_id = self.session.put(f"{self.root_url}/orders/{variety}/{order_id}",
+            #                             data=params, headers=self.headers).json()["data"][
+            #     "order_id"]
+            # return order_id
+            response = self.session.put(f"{self.root_url}/orders/{variety}/{order_id}",
+                                        data=params, headers=self.headers).json()
+            if response["status"] == "success":
+                order_id = response["data"]["order_id"]
+                return order_id
+            else:
+                print("ERROR from server   ===> ", response["message"])
+                return None
+            # return order_id
+        except Exception as e:
+            print("ERROR occurred => ", e)
+            return e
 
     def cancel_order(self, variety, order_id, parent_order_id=None):
-        order_id = self.session.delete(f"{self.root_url}/orders/{variety}/{order_id}",
-                                       data={"parent_order_id": parent_order_id} if parent_order_id else {},
-                                       headers=self.headers).json()["data"]["order_id"]
-        return order_id
+        try:
+            response = self.session.delete(f"{self.root_url}/orders/{variety}/{order_id}",
+                                           data={"parent_order_id": parent_order_id} if parent_order_id else {},
+                                           headers=self.headers).json()
+            if response["status"] == "success":
+                order_id = response["data"]["order_id"]
+                return order_id
+            else:
+                print("ERROR from server   ===> ", response["message"])
+                return None
+
+        except Exception as e:
+            print("ERROR occurred => ", e)
+            return e
